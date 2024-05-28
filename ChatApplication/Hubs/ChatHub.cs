@@ -102,6 +102,19 @@ namespace ChatApplication.Hubs
             }
         }
 
+        public async Task SendPrivateMessageToUser(string user, string message)
+        {
+            if (_adminList.TryGetValue(Context.ConnectionId, out string adminRoom))
+            {
+                var userConnectionId = _connections.FirstOrDefault(c => c.Value.User == user && c.Value.Room == adminRoom).Key;
+                if (userConnectionId != null)
+                {
+                    await Clients.Client(userConnectionId).SendAsync("ReceivePrivateMessage", "Admin", message, DateTime.Now);
+                    await Clients.Client(Context.ConnectionId).SendAsync("ReceivePrivateMessage", user, message, DateTime.Now);
+                }
+            }
+        }
+
 
     }
 }

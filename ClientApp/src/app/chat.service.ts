@@ -53,11 +53,17 @@ export class ChatService {
       .catch(err => console.error(err));
   }
 
-  public leaveChat() {
+  public async sendPrivateMessageToUser(user: string, message: string) {
+    console.log("sendPrivateMessageToUser is called", user, message);
+    return this.hubConnection.invoke('SendPrivateMessageToUser', user, message)
+        .catch(err => console.error(err));
+  }
+
+  public async leaveChat() {
     return this.hubConnection.stop();
   }
 
-  public kickUser(user: string): Promise<void> {
+  public async kickUser(user: string) {
     console.log("kickUser is called");
     return this.hubConnection.invoke('KickUser', user)
       .catch(err => console.error(err));
