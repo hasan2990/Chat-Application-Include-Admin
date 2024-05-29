@@ -30,8 +30,7 @@ export class AdminComponent implements OnInit {
   private loadPrivateMessages(): void {
     this.chatService.privateMessages$.subscribe(res => {
       this.privateMessages = res;
-      console.log("privateMessages: ", this.privateMessages);
-
+      console.log("privateMessaddddddddges: ", this.privateMessages,this.loggedInUserName);
       const lastMessage = this.privateMessages[this.privateMessages.length - 1];
       if (lastMessage && lastMessage.user !== this.user) {
         this.lastMessageSender = lastMessage.user;
@@ -49,22 +48,20 @@ export class AdminComponent implements OnInit {
 
   sendPrivateMessageToUser(): void {
     if (this.lastMessageSender) {
-      this.chatService.sendPrivateMessageToUser(this.lastMessageSender, this.inputMessage)
-        .then(res => {
-          console.log("sendPrivateMessageToUser Message sent successfully: ", this.lastMessageSender, this.inputMessage);
-          console.log(res);
-          this.inputMessage = '';
-        })
-        .catch(err => {
-          console.log(err);
-        });
+        this.chatService.sendPrivateMessageToUser(this.lastMessageSender, this.inputMessage)
+            .then(res => {
+                console.log("Message sent successfully: ", this.lastMessageSender, this.inputMessage);
+                this.inputMessage = '';
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
   }
 
+
   replyToLastMessageSender(): void {
     console.log("replyToLastMessageSender " + this.lastMessageSender);
-
-    //this.chatService.privateMessages.
     this.inputMessage = ""; 
   }
 
@@ -92,3 +89,4 @@ export class AdminComponent implements OnInit {
       });
   }
 }
+

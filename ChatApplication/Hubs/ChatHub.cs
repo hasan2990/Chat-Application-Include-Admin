@@ -5,7 +5,8 @@ namespace ChatApplication.Hubs
     public class ChatHub : Hub
     {
         private readonly IDictionary<string, UserRoomConnection> _connections;
-        private readonly IDictionary<string, string> _adminList; 
+        private readonly IDictionary<string, string> _adminList;
+        
 
         public ChatHub(IDictionary<string, UserRoomConnection> connections, IDictionary<string, string> adminList)
         {
@@ -16,12 +17,16 @@ namespace ChatApplication.Hubs
         public async Task JoinRoom(UserRoomConnection userConnection)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, userConnection.Room!);
-
+            userConnection.connectionId = Context.ConnectionId;
             _connections[Context.ConnectionId] = userConnection;
 
             if (userConnection.isAdmin)
             {
+              
+                
                 _adminList[userConnection.Room!] = Context.ConnectionId;
+                
+                Console.WriteLine("Admins are" + _adminList);
                 await Clients.Client(Context.ConnectionId)
                     .SendAsync("ReceivePrivateMessage", "Lets Program Bot", $"{userConnection.User} are the admin of this group.");
             }
@@ -49,7 +54,7 @@ namespace ChatApplication.Hubs
                 _adminList.Remove(roomConnection.Room!);
             }
 
-            await Clients.Group(roomConnection.Room!)
+            await Clients.Client(roomConnection.Room!)
                 .SendAsync("ReceivePrivateMessage", "Lets Program Bot", $"{roomConnection.User} has left the group.");
             await SendConnectedUser(roomConnection.Room!);
 
@@ -102,20 +107,30 @@ namespace ChatApplication.Hubs
             }
         }
 
+        /*   public async Task SendPrivateMessageToUser(string user, string message)
+           {
+               if (_adminList.TryGetValue(Context.ConnectionId, out string adminRoom))
+               {
+                   var userConnectionId = _connections.FirstOrDefault(c => c.Value.User == user && c.Value.Room == adminRoom).Key;
+                   if (userConnectionId != null)
+                   {
+                       await Clients.Client(userConnectionId).SendAsync("ReceivePrivateMessage", "Admin", message, DateTime.Now);
+                       await Clients.Client(Context.ConnectionId).SendAsync("ReceivePrivateMessage", user, message, DateTime.Now);
+                   }
+               }
+           }*/
+
         public async Task SendPrivateMessageToUser(string user, string message)
         {
-            if (_adminList.TryGetValue(Context.ConnectionId, out string adminRoom))
-            {
-                var userConnectionId = _connections.FirstOrDefault(c => c.Value.User == user && c.Value.Room == adminRoom).Key;
-                if (userConnectionId != null)
-                {
-                    await Clients.Client(userConnectionId).SendAsync("ReceivePrivateMessage", "Admin", message, DateTime.Now);
-                    await Clients.Client(Context.ConnectionId).SendAsync("ReceivePrivateMessage", user, message, DateTime.Now);
-                }
-            }
+
+            await Clients.Client(Context.ConnectionId).SendAsync("ReceivePrivateMessage", user, message, DateTime.Now);
+            var userConnectionId = _connections.FirstOrDefault(c => c.Key == Context.ConnectionId);
+
+            var connection = _connections.Values.FirstOrDefault(c => c.User == user);
+            await Clients.Client(connection.connectionId).SendAsync("ReceivePrivateMessage", userConnectionId.Value.User, message, DateTime.Now);
+
+
         }
-
-
     }
 }
 

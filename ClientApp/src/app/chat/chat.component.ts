@@ -43,17 +43,17 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
   }
 
-  sendPrivateMessageToAdmin(){
+  sendPrivateMessageToAdmin(): void {
     this.chatService.sendPrivateMessageToAdmin(this.user, this.inputMessage)
-      .then(res => {
-        console.log("Message sent successfully from chat component: ", this.user, this.inputMessage);
-        console.log(res);
-        this.inputMessage = '';
-      })
-      .catch(err => {
-        console.log(err);
-      });
+        .then(res => {
+            console.log("Message sent successfully from chat component: ", this.user, this.inputMessage);
+            this.inputMessage = '';
+        })
+        .catch(err => {
+            console.log(err);
+        });
   }
+
 
   leaveChat(){
     this.chatService.leaveChat()
@@ -68,3 +68,4 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       });
   }
 }
+
