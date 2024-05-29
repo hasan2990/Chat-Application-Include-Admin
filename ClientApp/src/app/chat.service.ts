@@ -17,6 +17,7 @@ export class ChatService {
 
   public connectedUsers$ = new BehaviorSubject<string[]>([]);
   public privateMessages$ = new BehaviorSubject<any[]>([]);
+  public connectedUsers: string[] = [];
   public privateMessages: any[] = [];
   public users: string[] = [];
 
@@ -27,6 +28,8 @@ export class ChatService {
       this.privateMessages = [...this.privateMessages, { user, message, messageTime }];
       this.privateMessages$.next(this.privateMessages);
     });
+
+
 
     this.hubConnection.on("ConnectedUser", (users: any) => {
       this.connectedUsers$.next(users);

@@ -19,7 +19,8 @@ export class AdminComponent implements OnInit {
   isAdmin: boolean = localStorage.getItem("isAdmin") === "true";
 
   lastMessageSender: string | null = null;
-
+  SelectedMessageSender: string | null = null;
+  
   ngOnInit(): void {
     this.loadPrivateMessages();
     if (this.isAdmin) {
@@ -30,7 +31,7 @@ export class AdminComponent implements OnInit {
   private loadPrivateMessages(): void {
     this.chatService.privateMessages$.subscribe(res => {
       this.privateMessages = res;
-      console.log("privateMessaddddddddges: ", this.privateMessages,this.loggedInUserName);
+      console.log("privateMessages: ", this.privateMessages,this.loggedInUserName);
       const lastMessage = this.privateMessages[this.privateMessages.length - 1];
       if (lastMessage && lastMessage.user !== this.user) {
         this.lastMessageSender = lastMessage.user;
@@ -46,9 +47,22 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  // sendPrivateMessageToUser(): void {
+  //   if (this.lastMessageSender) {
+  //       this.chatService.sendPrivateMessageToUser(this.lastMessageSender, this.inputMessage)
+  //           .then(res => {
+  //               console.log("Message sent successfully: ", this.lastMessageSender, this.inputMessage);
+  //               this.inputMessage = '';
+  //           })
+  //           .catch(err => {
+  //               console.log(err);
+  //           });
+  //   }
+  // }
+
   sendPrivateMessageToUser(): void {
-    if (this.lastMessageSender) {
-        this.chatService.sendPrivateMessageToUser(this.lastMessageSender, this.inputMessage)
+    if (this.SelectedMessageSender) {
+        this.chatService.sendPrivateMessageToUser(this.SelectedMessageSender, this.inputMessage)
             .then(res => {
                 console.log("Message sent successfully: ", this.lastMessageSender, this.inputMessage);
                 this.inputMessage = '';
@@ -59,8 +73,9 @@ export class AdminComponent implements OnInit {
     }
   }
 
-
-  replyToLastMessageSender(): void {
+  replyToLastMessageSender(Selectuser : string): void {
+    this.SelectedMessageSender = Selectuser;
+    console.log("Reply sent successfully: ", this.SelectedMessageSender);
     console.log("replyToLastMessageSender " + this.lastMessageSender);
     this.inputMessage = ""; 
   }
@@ -77,6 +92,7 @@ export class AdminComponent implements OnInit {
   }
 
   leaveChat(): void {
+   
     this.chatService.leaveChat()
       .then(() => {
         this.router.navigate(['welcome']);

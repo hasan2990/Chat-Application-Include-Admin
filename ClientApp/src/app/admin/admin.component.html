@@ -16,7 +16,8 @@
               <div class="chat_ib mt-3">
                 <h5 [ngClass]="{'admin': isAdmin}">{{ con_user }}</h5>
                 <button *ngIf="isAdmin && con_user" (click)="kickUser(con_user)" class="btn btn-danger">Kick User</button>
-                <button *ngIf="lastMessageSender === con_user" (click)="replyToLastMessageSender()" class="btn btn-primary">Reply</button>
+                <button *ngIf="isAdmin && con_user" (click)="replyToLastMessageSender(con_user)" class="btn btn-primary">Msg</button>
+                <!-- <button *ngIf="lastMessageSender === con_user" (click)="replyToLastMessageSender()" class="btn btn-primary">Reply</button> -->
               </div>
             </div>
           </div>

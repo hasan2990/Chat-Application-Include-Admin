@@ -1,5 +1,6 @@
-using ChatApplication;
+using ChatApplication.Helper;
 using ChatApplication.Hubs;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
-builder.Services.AddSingleton<IDictionary<string, UserRoomConnection>>(opt =>
-    new Dictionary<string, UserRoomConnection>());
-builder.Services.AddSingleton<IDictionary<string, string>>(opt =>
-    new Dictionary<string, string>());
+builder.Services.AddSingleton<Container>();
 
 // Configure CORS
 builder.Services.AddCors(options =>

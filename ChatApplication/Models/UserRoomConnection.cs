@@ -1,4 +1,4 @@
-﻿namespace ChatApplication
+﻿namespace ChatApplication.Models
 {
     public class UserRoomConnection
     {
