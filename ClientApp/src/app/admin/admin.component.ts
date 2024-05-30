@@ -79,6 +79,7 @@ export class AdminComponent implements OnInit {
     
     console.log("Reply to SelectedMessageSender: ", this.SelectedMessageSender);
     console.log("replyToLastMessageSender " + this.lastMessageSender);
+    this.sendAdminToUserIndividualRoomMessage(Selectuser, "time.....out");
     this.inputMessage = ""; 
   }
 
@@ -104,6 +105,28 @@ export class AdminComponent implements OnInit {
       })
       .catch(err => {
         console.log(err);
+      });
+  }
+
+  sendAdminToUserIndividualRoomMessage(to: string, message: string): void {
+    console.log(this.privateMessages);
+    console.log(this.loggedInUserName);
+    console.log(to);
+    console.log(message);
+
+    this.temp = this.privateMessages.filter(msg => msg.user === to);
+    console.log(this.temp);
+    this.temp = this.temp.filter(msg => msg.user.includes('admin'));
+    console.log(this.temp);
+    
+    const from = this.loggedInUserName || '';
+    this.chatService.sendAdminToUserIndividualRoomMessage(from, to, message)
+      .then(() => {
+        console.log("Message sent successfully.");
+        
+      })
+      .catch(err => {
+        console.error("Error sending message:", err);
       });
   }
 }

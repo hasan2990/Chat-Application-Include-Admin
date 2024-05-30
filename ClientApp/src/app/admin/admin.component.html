@@ -8,7 +8,7 @@
       <h4 class="text-white">Connected Users</h4>
       <div class="inbox_chat">
         <ng-container *ngFor="let con_user of connectedUsers">
-          <div class="chat_list">
+          <div class="chat_list" *ngIf="con_user !== loggedInUserName">
             <div class="chat_people">
               <div class="chat_img">
                 <img src="https://ptetutorials.com/images/user-profile.png" alt="user">
@@ -16,8 +16,7 @@
               <div class="chat_ib mt-3">
                 <h5 [ngClass]="{'admin': isAdmin}">{{ con_user }}</h5>
                 <button *ngIf="isAdmin && con_user" (click)="kickUser(con_user)" class="btn btn-danger">Kick User</button>
-                <button *ngIf="isAdmin && con_user" (click)="replyToLastMessageSender(con_user)" class="btn btn-primary">Msg</button>
-                <!-- <button *ngIf="lastMessageSender === con_user" (click)="replyToLastMessageSender()" class="btn btn-primary">Reply</button> -->
+                <button *ngIf="isAdmin && con_user" (click)="replyToLastMessageSender(con_user)" class="btn btn-primary">Msg</button> 
               </div>
             </div>
           </div>

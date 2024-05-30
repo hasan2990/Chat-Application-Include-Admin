@@ -7,11 +7,12 @@ namespace ChatApplication.Helper
     {
         public ConcurrentDictionary<string, UserRoomConnection> _connections;
         public ConcurrentDictionary<string, string> _adminList;
-
+        public ConcurrentDictionary<string, List<ChatMessage>> _messageHistory;
         public Container()
         {
             _connections = new();
             _adminList = new();
+            _messageHistory = new();
         }
     }
 }

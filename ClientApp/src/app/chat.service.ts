@@ -34,6 +34,11 @@ export class ChatService {
     this.hubConnection.on("ConnectedUser", (users: any) => {
       this.connectedUsers$.next(users);
     });
+
+    this.hubConnection.on("ReceiveAdminPrivateMessage", (user: string, message: any, messageTime: string) => {
+      this.privateMessages = message;
+      this.privateMessages$.next(this.privateMessages);
+    });
   }
 
   public async start() {
@@ -71,4 +76,11 @@ export class ChatService {
     return this.hubConnection.invoke('KickUser', user)
       .catch(err => console.error(err));
   }
+
+  public async sendAdminToUserIndividualRoomMessage(from: string, to: string, message: string) {
+    console.log("sendAdminToUserIndividualRoomMessage is called", from, to, message);
+    return this.hubConnection.invoke('AdminToUserIndividualRoom', from, to, message)
+        .catch(err => console.error(err));
+  }
+
 }

@@ -120,5 +120,34 @@ namespace ChatApplication.Hubs
             var connection = _container._connections.Values.FirstOrDefault(c => c.User == user);
             await Clients.Client(connection.connectionId).SendAsync("ReceivePrivateMessage", $"admin->{adminUserName}", message, DateTime.Now);
         }
+
+        public async Task AdminToUserIndividualRoom(string from, string to, string message)
+        {
+            var fromConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == from).Key;
+            var toConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == to).Key;
+
+            var adminUserName = _container._connections[fromConnectionId].User;
+            var userName  = _container._connections[toConnectionId].User;
+
+            //var adminUserName = _container._connections[Context.ConnectionId].User;
+
+            var roomName = $"{from}-{to}";
+
+
+            if (!_container._messageHistory.ContainsKey(roomName))
+            {
+                _container._messageHistory[roomName] = new List<ChatMessage>();
+            }
+
+
+            _container._messageHistory[roomName].Add(new ChatMessage { From = adminUserName, To = userName, Message = message, Timestamp = DateTime.Now });
+
+            List<ChatMessage> currentMessage = _container._messageHistory[roomName];
+               /* .Where(msg => msg.From == adminUserName && msg.To == userName)
+                .ToList();*/
+
+            await Clients.Client(fromConnectionId).SendAsync("ReceiveAdminPrivateMessage", $"admin->{adminUserName}", currentMessage, DateTime.Now);
+            await Clients.Client(toConnectionId).SendAsync("ReceiveAdminPrivateMessage", $"admin->{adminUserName}", currentMessage, DateTime.Now);
+        }
     }
 }
