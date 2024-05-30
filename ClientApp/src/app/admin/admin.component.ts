@@ -14,6 +14,7 @@ export class AdminComponent implements OnInit {
   inputMessage = "";
   connectedUsers: any[] = [];
   privateMessages: any[] = []; 
+  temp: any[] = [];
   loggedInUserName: string | null = localStorage.getItem("user");
   roomName: string | null = localStorage.getItem("room");
   isAdmin: boolean = localStorage.getItem("isAdmin") === "true";
@@ -31,6 +32,15 @@ export class AdminComponent implements OnInit {
   private loadPrivateMessages(): void {
     this.chatService.privateMessages$.subscribe(res => {
       this.privateMessages = res;
+      // if(this.SelectedMessageSender == null){
+      //   this.temp = this.privateMessages;
+      // }
+      // else{
+
+      //   this.temp = this.privateMessages.filter(msg => msg.user === this.SelectedMessageSender);
+      //   this.temp = this.temp.filter(msg => msg.user.includes('admin'));
+      // }
+
       console.log("privateMessages: ", this.privateMessages,this.loggedInUserName);
       const lastMessage = this.privateMessages[this.privateMessages.length - 1];
       if (lastMessage && lastMessage.user !== this.user) {
@@ -47,19 +57,6 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // sendPrivateMessageToUser(): void {
-  //   if (this.lastMessageSender) {
-  //       this.chatService.sendPrivateMessageToUser(this.lastMessageSender, this.inputMessage)
-  //           .then(res => {
-  //               console.log("Message sent successfully: ", this.lastMessageSender, this.inputMessage);
-  //               this.inputMessage = '';
-  //           })
-  //           .catch(err => {
-  //               console.log(err);
-  //           });
-  //   }
-  // }
-
   sendPrivateMessageToUser(): void {
     if (this.SelectedMessageSender) {
         this.chatService.sendPrivateMessageToUser(this.SelectedMessageSender, this.inputMessage)
@@ -70,12 +67,17 @@ export class AdminComponent implements OnInit {
             .catch(err => {
                 console.log(err);
             });
+        
     }
   }
 
   replyToLastMessageSender(Selectuser : string): void {
     this.SelectedMessageSender = Selectuser;
-    console.log("Reply sent successfully: ", this.SelectedMessageSender);
+    // this.temp = this.privateMessages.filter(msg => msg.user === this.SelectedMessageSender);
+    // this.temp = this.temp.filter(msg => msg.user.includes('admin'));
+    // console.log(this.temp);
+    
+    console.log("Reply to SelectedMessageSender: ", this.SelectedMessageSender);
     console.log("replyToLastMessageSender " + this.lastMessageSender);
     this.inputMessage = ""; 
   }
