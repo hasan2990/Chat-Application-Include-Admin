@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ChatService } from '../chat.service';
 import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-admin',
@@ -13,8 +14,8 @@ export class AdminComponent implements OnInit {
   user: any = localStorage.getItem("user");
   inputMessage = "";
   connectedUsers: any[] = [];
-  privateMessages: any[] = []; 
-  temp: any[] = [];
+  public privateMessages$ = new BehaviorSubject<any[]>([]);
+  public privateMessages: any[] = [];
   loggedInUserName: string | null = localStorage.getItem("user");
   roomName: string | null = localStorage.getItem("room");
   isAdmin: boolean = localStorage.getItem("isAdmin") === "true";
@@ -32,14 +33,6 @@ export class AdminComponent implements OnInit {
   private loadPrivateMessages(): void {
     this.chatService.privateMessages$.subscribe(res => {
       this.privateMessages = res;
-      // if(this.SelectedMessageSender == null){
-      //   this.temp = this.privateMessages;
-      // }
-      // else{
-
-      //   this.temp = this.privateMessages.filter(msg => msg.user === this.SelectedMessageSender);
-      //   this.temp = this.temp.filter(msg => msg.user.includes('admin'));
-      // }
 
       console.log("privateMessages: ", this.privateMessages,this.loggedInUserName);
       const lastMessage = this.privateMessages[this.privateMessages.length - 1];
@@ -73,14 +66,8 @@ export class AdminComponent implements OnInit {
 
   replyToLastMessageSender(Selectuser : string): void {
     this.SelectedMessageSender = Selectuser;
-    // this.temp = this.privateMessages.filter(msg => msg.user === this.SelectedMessageSender);
-    // this.temp = this.temp.filter(msg => msg.user.includes('admin'));
-    // console.log(this.temp);
-    
-    console.log("Reply to SelectedMessageSender: ", this.SelectedMessageSender);
-    console.log("replyToLastMessageSender " + this.lastMessageSender);
-    this.sendAdminToUserIndividualRoomMessage(Selectuser, "time.....out");
-    this.inputMessage = ""; 
+    console.log(this.lastMessageSender +" " + this.lastMessageSender);
+    this.chatService.getMessage(this.SelectedMessageSender, this.lastMessageSender);
   }
 
   kickUser(username: string): void {
@@ -108,26 +95,6 @@ export class AdminComponent implements OnInit {
       });
   }
 
-  sendAdminToUserIndividualRoomMessage(to: string, message: string): void {
-    console.log(this.privateMessages);
-    console.log(this.loggedInUserName);
-    console.log(to);
-    console.log(message);
-
-    this.temp = this.privateMessages.filter(msg => msg.user === to);
-    console.log(this.temp);
-    this.temp = this.temp.filter(msg => msg.user.includes('admin'));
-    console.log(this.temp);
-    
-    const from = this.loggedInUserName || '';
-    this.chatService.sendAdminToUserIndividualRoomMessage(from, to, message)
-      .then(() => {
-        console.log("Message sent successfully.");
-        
-      })
-      .catch(err => {
-        console.error("Error sending message:", err);
-      });
-  }
+ 
 }
 

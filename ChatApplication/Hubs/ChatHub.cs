@@ -3,6 +3,7 @@ using ChatApplication.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace ChatApplication.Hubs
@@ -24,14 +25,14 @@ namespace ChatApplication.Hubs
 
             if (userConnection.isAdmin)
             {
-                _container._adminList[userConnection.Room] = Context.ConnectionId;
+                _container._adminList[userConnection.Room!] = Context.ConnectionId;
 
                 await Clients.Client(Context.ConnectionId)
                     .SendAsync("ReceivePrivateMessage", "Lets Program Bot", $"{userConnection.User} is the admin of this group.");
             }
             else
             {
-                var adminConnectionId = _container._adminList.GetValueOrDefault(userConnection.Room);
+                var adminConnectionId = _container._adminList.GetValueOrDefault(userConnection.Room!);
                 if (adminConnectionId != null)
                 {
                     await Clients.Client(adminConnectionId)
@@ -121,33 +122,56 @@ namespace ChatApplication.Hubs
             await Clients.Client(connection.connectionId).SendAsync("ReceivePrivateMessage", $"admin->{adminUserName}", message, DateTime.Now);
         }
 
-        public async Task AdminToUserIndividualRoom(string from, string to, string message)
+
+        /*public async Task AdminToUserIndividualRoom(string from, string to, string message)
         {
             var fromConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == from).Key;
             var toConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == to).Key;
 
             var adminUserName = _container._connections[fromConnectionId].User;
-            var userName  = _container._connections[toConnectionId].User;
-
-            //var adminUserName = _container._connections[Context.ConnectionId].User;
-
-            var roomName = $"{from}-{to}";
+            var userName = _container._connections[toConnectionId].User;
 
 
-            if (!_container._messageHistory.ContainsKey(roomName))
+            if (!_container._messageHistory.ContainsKey(from + to))
             {
-                _container._messageHistory[roomName] = new List<ChatMessage>();
+                _container._messageHistory[from + to] = new List<ChatMessage>();
             }
 
+            _container._messageHistory[from + to].Add(new ChatMessage { From = adminUserName, To = userName, Message = message, Timestamp = DateTime.Now });
 
-            _container._messageHistory[roomName].Add(new ChatMessage { From = adminUserName, To = userName, Message = message, Timestamp = DateTime.Now });
+        }*/
 
-            List<ChatMessage> currentMessage = _container._messageHistory[roomName];
-               /* .Where(msg => msg.From == adminUserName && msg.To == userName)
-                .ToList();*/
 
-            await Clients.Client(fromConnectionId).SendAsync("ReceiveAdminPrivateMessage", $"admin->{adminUserName}", currentMessage, DateTime.Now);
-            await Clients.Client(toConnectionId).SendAsync("ReceiveAdminPrivateMessage", $"admin->{adminUserName}", currentMessage, DateTime.Now);
+        public async Task GetMessagesByUser(string msg)
+        {
+            string from = msg.Split(',')[0];
+            string to = msg.Split(",")[1];
+
+            var fromConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == from).Key;
+            var toConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == to).Key;
+
+            await SendConnectedUser(toConnectionId);
+            
+            List<ChatMessage> currentMessage = new List<ChatMessage>();
+
+            if (_container._messageHistory.ContainsKey(from + to))
+            {
+                currentMessage.AddRange(_container._messageHistory[from + to]);
+            }
+            if (_container._messageHistory.ContainsKey(to + from))
+            {
+                currentMessage.AddRange(_container._messageHistory[to + from]);
+            }
+
+            currentMessage = currentMessage.OrderBy(x => x.Timestamp).ToList(); // Order messages by DateTime
+
+            List<GetMessagesModel> getmessagemodels = currentMessage.Select(x => new GetMessagesModel
+            {
+                user = x.From,
+                message = x.Message,
+                messageTime = x.Timestamp
+            }).ToList();
+            await Clients.Client(Context.ConnectionId).SendAsync("ReceiveIndividualMessages", getmessagemodels);
         }
     }
 }
