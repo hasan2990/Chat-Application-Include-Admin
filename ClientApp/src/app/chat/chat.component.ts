@@ -1,6 +1,7 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, AfterViewChecked } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, AfterViewChecked } from '@angular/core';
 import { ChatService } from '../chat.service';
 import { Router } from '@angular/router';
+import { amdinToUserMessages } from '../Models/privateMessage';
 
 @Component({
   selector: 'app-chat',
@@ -8,34 +9,44 @@ import { Router } from '@angular/router';
   styleUrls: ['./chat.component.css']
 })
 export class ChatComponent implements OnInit, AfterViewChecked {
-  chatService = inject(ChatService);  
-  router = inject(Router);
   inputMessage = "";
-  
-  privateMessages: any[] = [];
+
+  constructor(
+    private chatService: ChatService,
+    private router: Router,
+  ) {}
+
   connectedUsers: any[] = [];
-  
+  chatmessages: amdinToUserMessages[] = [];
+
+  adminName: any = localStorage.getItem("adminName");
   user: any = localStorage.getItem("user");
-  loggedInUserName = localStorage.getItem("user");
-  roomName = localStorage.getItem("room");
+  loggedInUserName: string | null = localStorage.getItem("user");
+
+  roomName: string | null = localStorage.getItem("room");
   isAdmin: boolean = localStorage.getItem("isAdmin") == "true";
 
   @ViewChild('scrollMe') private scrollContainer!: ElementRef;
 
   ngOnInit(): void {
+    console.log(this.loggedInUserName);
+
     if (this.isAdmin) {
       this.router.navigate(['/admin']);
-      return; 
+      return;
     }
-    this.chatService.privateMessages$.subscribe(res => {
-      this.privateMessages = res;
-      console.log("privateMessages from chat component: ", this.privateMessages);
+
+    this.chatService.chatmessages$.subscribe(res => {
+      this.chatmessages = res;
+      console.log(res);
+      console.log("chatmessages from chat component: ", this.chatmessages);
     });
-    if(this.isAdmin){
-        this.chatService.connectedUsers$.subscribe(res => {
-          console.log("Connected Users from chat component: ", res);
-          this.connectedUsers = res;
-        });
+
+    if (this.isAdmin) {
+      this.chatService.connectedUsers$.subscribe(res => {
+        console.log("Connected Users from chat component: ", res);
+        this.connectedUsers = res;
+      });
     }
   }
 
@@ -44,18 +55,17 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
 
   sendPrivateMessageToAdmin(): void {
-    this.chatService.sendPrivateMessageToAdmin(this.user, this.inputMessage)
-        .then(res => {
-            console.log("Message sent successfully from chat component: ", this.user, this.inputMessage);
-            this.inputMessage = '';
-        })
-        .catch(err => {
-            console.log(err);
-        });
+    this.chatService.setMessages(this.user, this.adminName, this.inputMessage)
+      .then(res => {
+        console.log("Message sent successfully from chat component: ", this.user, this.inputMessage);
+        this.inputMessage = '';
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 
-
-  leaveChat(){
+  leaveChat() {
     this.chatService.leaveChat()
       .then(() => {
         this.router.navigate(['welcome']);
@@ -68,4 +78,3 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       });
   }
 }
-

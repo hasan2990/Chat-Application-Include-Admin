@@ -1,10 +1,6 @@
 ﻿using ChatApplication.Helper;
 using ChatApplication.Models;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 
 namespace ChatApplication.Hubs
 {
@@ -98,60 +94,40 @@ namespace ChatApplication.Hubs
             return Clients.Group(room).SendAsync("ConnectedUser", users);
         }
 
-        public async Task SendPrivateMessageToAdmin(string user, string message)
+        public async Task SetMessages(Messages msg)
         {
-            if (_container._connections.TryGetValue(Context.ConnectionId, out UserRoomConnection userConnection))
+            try
             {
-                var room = userConnection.Room;
-                if (_container._adminList.TryGetValue(room, out string adminConnectionId))
+                if (msg.Message.Length>0)
                 {
-                    await Clients.Client(adminConnectionId).SendAsync("ReceivePrivateMessage", user, message, DateTime.Now);
-                    await Clients.Client(Context.ConnectionId).SendAsync("ReceivePrivateMessage", user, message, DateTime.Now);
+                    var users = msg.From + msg.To;
+
+                    ChatMessage currentMessage = new ChatMessage();
+
+                    currentMessage.From = msg.From;
+                    currentMessage.To = msg.To;
+                    currentMessage.Message = msg.Message;
+                    currentMessage.Timestamp = DateTime.Now;
+                    if (!_container._messageHistory.ContainsKey(users))
+                        _container._messageHistory[users] = new List<ChatMessage>();
+
+                    _container._messageHistory[users].Add(currentMessage);
                 }
-            }
-        }
+                
 
-        public async Task SendPrivateMessageToUser(string user, string message)
-        {
-            var userConnectionId = _container._connections.FirstOrDefault(c => c.Key == Context.ConnectionId);
-            var adminUserName = userConnectionId.Value.User;
-
-            await Clients.Client(Context.ConnectionId).SendAsync("ReceivePrivateMessage", $"admin->{adminUserName}", message, DateTime.Now);
-
-            var connection = _container._connections.Values.FirstOrDefault(c => c.User == user);
-            await Clients.Client(connection.connectionId).SendAsync("ReceivePrivateMessage", $"admin->{adminUserName}", message, DateTime.Now);
-        }
-
-
-        /*public async Task AdminToUserIndividualRoom(string from, string to, string message)
-        {
-            var fromConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == from).Key;
-            var toConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == to).Key;
-
-            var adminUserName = _container._connections[fromConnectionId].User;
-            var userName = _container._connections[toConnectionId].User;
-
-
-            if (!_container._messageHistory.ContainsKey(from + to))
+                await GetMessages(msg.From!, msg.To!);
+            }catch (Exception ex)
             {
-                _container._messageHistory[from + to] = new List<ChatMessage>();
+                Console.WriteLine("Error "+ ex.Message);
             }
 
-            _container._messageHistory[from + to].Add(new ChatMessage { From = adminUserName, To = userName, Message = message, Timestamp = DateTime.Now });
-
-        }*/
-
-
-        public async Task GetMessagesByUser(string msg)
+        }
+        public async Task GetMessages(string from,string to)
         {
-            string from = msg.Split(',')[0];
-            string to = msg.Split(",")[1];
 
             var fromConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == from).Key;
             var toConnectionId = _container._connections.FirstOrDefault(c => c.Value.User == to).Key;
 
-            await SendConnectedUser(toConnectionId);
-            
             List<ChatMessage> currentMessage = new List<ChatMessage>();
 
             if (_container._messageHistory.ContainsKey(from + to))
@@ -163,7 +139,7 @@ namespace ChatApplication.Hubs
                 currentMessage.AddRange(_container._messageHistory[to + from]);
             }
 
-            currentMessage = currentMessage.OrderBy(x => x.Timestamp).ToList(); // Order messages by DateTime
+            currentMessage = currentMessage.OrderBy(x => x.Timestamp).ToList(); 
 
             List<GetMessagesModel> getmessagemodels = currentMessage.Select(x => new GetMessagesModel
             {
@@ -171,7 +147,9 @@ namespace ChatApplication.Hubs
                 message = x.Message,
                 messageTime = x.Timestamp
             }).ToList();
-            await Clients.Client(Context.ConnectionId).SendAsync("ReceiveIndividualMessages", getmessagemodels);
+
+            await Clients.Client(fromConnectionId).SendAsync("ReceiveIndividualMessages", getmessagemodels);
+            await Clients.Client(toConnectionId).SendAsync("ReceiveIndividualMessages", getmessagemodels);
         }
     }
 }

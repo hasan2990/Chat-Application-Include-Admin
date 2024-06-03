@@ -24,27 +24,34 @@
     </div>
   </div>
 
+
   <div class="mesgs">
     <div #scrollMe class="msg_history">
-      <ng-container *ngFor="let message of privateMessages">
+      
+      <ng-container *ngFor="let message of chatmessages">
         <div [ngClass]="{'incoming_msg': message.user !== loggedInUserName, 'outgoing_msg': message.user === loggedInUserName}">
           <div *ngIf="message.user !== loggedInUserName" class="incoming_msg_img">
             <img src="https://ptetutorials.com/images/user-profile.png">
           </div>
           <div *ngIf="message.user !== loggedInUserName" class="received_msg">
             <div class="received_withd_msg">
-              <p>{{ message.message }}</p>
-              <span class="time_date">{{ message.user }} | {{ message.messageTime | date: 'medium' }}</span>
+              <p> {{ message.message }}</p>
+              <span class="time_date">{{ message.user }} | {{ message.messageTime | date: 'medium'}}</span>
             </div>
+          </div>
+          <div *ngIf="message.user === loggedInUserName" class="sent_msg">
+            <p>{{ message.message }}</p>
+            <span class="time_date">{{ message.user }} | {{ message.messageTime | date: 'medium'}}</span>
           </div>
         </div>
       </ng-container>
     </div>
     <div class="type_msg">
       <div class="input_msg_write">
-        <input (keydown.enter)="sendPrivateMessageToUser()" [(ngModel)]="inputMessage" type="text" placeholder="Type a message" />
-        <button (click)="sendPrivateMessageToUser()" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+        <input (keydown.enter)="sendPrivateMessageToUser()" [(ngModel)]="inputMessage" type="text" class="write_msg" placeholder="Type a message" />
+        <button (click)="sendPrivateMessageToUser()" class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
       </div>
     </div>
   </div>
 </div>
+

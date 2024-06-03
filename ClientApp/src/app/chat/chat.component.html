@@ -10,7 +10,7 @@
       <div class="mesgs">
         <div #scrollMe class="msg_history">
           
-          <ng-container *ngFor="let message of privateMessages">
+          <ng-container *ngFor="let message of chatmessages">
             <div [ngClass]="{'incoming_msg': message.user !== loggedInUserName, 'outgoing_msg': message.user === loggedInUserName}">
               <div *ngIf="message.user !== loggedInUserName" class="incoming_msg_img">
                 <img src="https://ptetutorials.com/images/user-profile.png">

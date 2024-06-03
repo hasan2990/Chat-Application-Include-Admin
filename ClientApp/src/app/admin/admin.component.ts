@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ChatService } from '../chat.service';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin',
@@ -9,20 +9,25 @@ import { BehaviorSubject } from 'rxjs';
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit {
-  chatService = inject(ChatService);
-  router = inject(Router);
+
   user: any = localStorage.getItem("user");
   inputMessage = "";
   connectedUsers: any[] = [];
-  public privateMessages$ = new BehaviorSubject<any[]>([]);
-  public privateMessages: any[] = [];
+
+  public chatmessages: any[] = [];
   loggedInUserName: string | null = localStorage.getItem("user");
   roomName: string | null = localStorage.getItem("room");
   isAdmin: boolean = localStorage.getItem("isAdmin") === "true";
 
   lastMessageSender: string | null = null;
   SelectedMessageSender: string | null = null;
-  
+
+  constructor(
+    private chatService: ChatService,
+    private router: Router,
+  ){
+    
+  }
   ngOnInit(): void {
     this.loadPrivateMessages();
     if (this.isAdmin) {
@@ -31,14 +36,12 @@ export class AdminComponent implements OnInit {
   }
 
   private loadPrivateMessages(): void {
-    this.chatService.privateMessages$.subscribe(res => {
-      this.privateMessages = res;
 
-      console.log("privateMessages: ", this.privateMessages,this.loggedInUserName);
-      const lastMessage = this.privateMessages[this.privateMessages.length - 1];
-      if (lastMessage && lastMessage.user !== this.user) {
-        this.lastMessageSender = lastMessage.user;
-      }
+    this.chatService.chatmessages$.subscribe(res => {
+      console.log(res);
+      this.chatmessages = res; // Append new messages
+      console.log("chatmessages: ", this.chatmessages, this.loggedInUserName);
+      
     });
   }
 
@@ -51,23 +54,29 @@ export class AdminComponent implements OnInit {
   }
 
   sendPrivateMessageToUser(): void {
+  
     if (this.SelectedMessageSender) {
-        this.chatService.sendPrivateMessageToUser(this.SelectedMessageSender, this.inputMessage)
-            .then(res => {
-                console.log("Message sent successfully: ", this.lastMessageSender, this.inputMessage);
-                this.inputMessage = '';
-            })
-            .catch(err => {
-                console.log(err);
-            });
+    console.log(this.user + " " + this.SelectedMessageSender + " " + this.inputMessage);
+    this.chatService.setMessages(this.user, this.SelectedMessageSender,this.inputMessage)
+      .then(messages => {
+        this.chatmessages = [...this.chatmessages,messages];
+        console.log(this.chatmessages);
         
+        this.inputMessage = '';
+      
+      })
+      .catch(err => {
+        console.log(err);
+      });
     }
+    
   }
 
-  replyToLastMessageSender(Selectuser : string): void {
+  replyToLastMessageSender(Selectuser: string): void {
     this.SelectedMessageSender = Selectuser;
-    console.log(this.lastMessageSender +" " + this.lastMessageSender);
-    this.chatService.getMessage(this.SelectedMessageSender, this.lastMessageSender);
+    this.sendPrivateMessageToUser();
+    console.log("replyToLastMessageSender called " + this.SelectedMessageSender);
+    
   }
 
   kickUser(username: string): void {
@@ -82,7 +91,6 @@ export class AdminComponent implements OnInit {
   }
 
   leaveChat(): void {
-   
     this.chatService.leaveChat()
       .then(() => {
         this.router.navigate(['welcome']);
@@ -94,7 +102,4 @@ export class AdminComponent implements OnInit {
         console.log(err);
       });
   }
-
- 
 }
-
